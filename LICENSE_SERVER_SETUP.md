@@ -35,8 +35,7 @@ A **license key** is a self-contained, HMAC-SHA256-signed JWT. The server is
 |---------------------|---------------------------------------------------|----------------------------|
 | `LICENSE_SECRET`    | Random string used to sign all JWT tokens         | `openssl rand -hex 32`     |
 | `ADMIN_SECRET`      | Password protecting the `/generate` endpoint      | `openssl rand -hex 16`     |
-| `KV_REST_API_URL`   | Vercel KV REST endpoint (auto-set if you link KV) | `https://xxx.kv.vercel-storage.com` |
-| `KV_REST_API_TOKEN` | Vercel KV bearer token (auto-set if you link KV)  | `AXxx…`                    |
+| `REDIS_URL`         | Redis connection URL (Redis Cloud or any provider)| `redis://default:<pw>@host:port` |
 
 ### 1.3 Deploy
 
@@ -61,7 +60,7 @@ Run the admin utility **from your machine** (not the customer's):
 
 ```bash
 python generate_license_key.py \
-  --server        https://your-project.vercel.app \
+  --server        https://licenseserver-lime.vercel.app \
   --admin-secret  <ADMIN_SECRET>                   \
   --customer-id   acme-corp                        \
   --expiry        2027-01-01                        \
@@ -165,3 +164,12 @@ docker run -d --env-file .env -v /host/work_dir:/work_dir -p 5800:5800 your-imag
 | KV storage | 256 MB | ~200 bytes per customer entry |
 
 For up to ~50 active customers the free tier is comfortably sufficient.
+
+
+## 7. Validating the license
+
+```
+curl -X POST https://licenseserver-lime.vercel.app/api/license/validate \
+  -H "Content-Type: application/json" \
+  -d '{"license_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhY21lLWNvcnAiLCJleHAiOjE3NzUyNjA4MDAsIm1vbnRobHlfY3JlZGl0cyI6MTAwMC4wLCJpYXQiOjE3NzQzNDIxMTR9.Id2qLn0pRwtuiMjMYr5_W8FGsz_9TNls6O7y3iGjapA"}'
+```

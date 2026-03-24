@@ -89,3 +89,9 @@ Edit `config.py` or set environment variables:
 ## License
 
 Licensed software with usage tracking. Contact for license keys.
+
+## License URL
+https://licenseserver-lime.vercel.app
+
+Admin_Secret 26d01a48e2c6b9b955a28c74760eb59f
+License_Secret ac507f26d1928db1a1e79ac108995b20d2e11d72ee0c398d24834e9f91429be5

@@ -6,8 +6,7 @@ All logic lives in a single file so Vercel's Python runtime can serve it.
 Environment variables expected on Vercel:
   LICENSE_SECRET   – HMAC-SHA256 signing secret for JWT license tokens
   ADMIN_SECRET     – Shared secret to protect the /generate endpoint
-  KV_REST_API_URL  – Vercel KV REST endpoint  (e.g. https://xxx.kv.vercel-storage.com)
-  KV_REST_API_TOKEN– Vercel KV bearer token
+  REDIS_URL        – Redis connection URL (e.g. redis://default:<password>@host:port)
 
 KV key layout:
   usage:<customer_id>   → JSON  { "used_hours": float, "last_reset_month": "YYYY-MM" }
@@ -31,16 +30,14 @@ import os
 import time
 import hmac
 import hashlib
-import urllib.request
-import urllib.error
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler
+import redis
 
 # ---------------------------------------------------------------------------
 # JWT helpers (pure-stdlib, no PyJWT needed at runtime on Vercel)
 # ---------------------------------------------------------------------------
 import base64
-import struct
 
 
 def _b64url_encode(data: bytes) -> str:
@@ -80,30 +77,29 @@ def _jwt_verify(token: str, secret: str) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Vercel KV helpers  (REST API, no SDK needed)
+# Redis helpers  (uses REDIS_URL env var)
 # ---------------------------------------------------------------------------
 
-def _kv_url() -> str:
-    return os.environ["KV_REST_API_URL"].rstrip("/")
+_redis_client = None
 
-
-def _kv_headers() -> dict:
-    return {
-        "Authorization": f"Bearer {os.environ['KV_REST_API_TOKEN']}",
-        "Content-Type": "application/json",
-    }
+def _get_redis():
+    """Return a cached Redis client, connecting via REDIS_URL."""
+    global _redis_client
+    if _redis_client is None:
+        _redis_client = redis.from_url(
+            os.environ["REDIS_URL"],
+            decode_responses=True,
+            socket_connect_timeout=5,
+            socket_timeout=5,
+        )
+    return _redis_client
 
 
 def _kv_get(key: str):
     """Return parsed JSON value or None."""
     try:
-        req = urllib.request.Request(
-            f"{_kv_url()}/get/{key}",
-            headers=_kv_headers(),
-        )
-        with urllib.request.urlopen(req, timeout=5) as resp:
-            data = json.loads(resp.read())
-            return data.get("result")  # None if key absent
+        raw = _get_redis().get(key)
+        return raw  # None if key absent
     except Exception:
         return None
 
@@ -111,15 +107,8 @@ def _kv_get(key: str):
 def _kv_set(key: str, value) -> bool:
     """Set key to JSON-encoded value. Returns True on success."""
     try:
-        body = json.dumps({"value": value}).encode()  # Vercel KV REST set
-        req = urllib.request.Request(
-            f"{_kv_url()}/set/{key}",
-            data=body,
-            headers=_kv_headers(),
-            method="POST",
-        )
-        with urllib.request.urlopen(req, timeout=5) as resp:
-            return True
+        _get_redis().set(key, value)
+        return True
     except Exception:
         return False
 
