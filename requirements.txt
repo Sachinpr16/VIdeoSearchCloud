@@ -1,0 +1,47 @@
+# Web Framework & API
+flask>=3.1.3
+flask-wtf>=1.2.1
+werkzeug>=3.0.0
+jinja2>=3.1.2
+flask-cors>=4.0.0
+python-dotenv>=1.0.0
+graphene>=2.1.9
+graphene-file-upload>=1.3.0
+Flask-GraphQL>=2.0.1
+gql>=2.0.0
+psycopg2-binary>=2.9.9
+sqlalchemy>=2.0.19
+
+# Image and Video Processing
+opencv-python>=4.13.0.92
+Pillow>=10.2.0
+scenedetect>=0.6.3
+decord>=0.6.0
+pytorchvideo @ git+https://github.com/facebookresearch/pytorchvideo.git
+
+# AI/ML Core (PyTorch 2.9)
+transformers==4.37.2
+accelerate==0.27.0
+datasets==2.16.0
+evaluate==0.4.1
+peft==0.10.0
+openai-whisper
+huggingface-hub==0.36.0
+
+# Visualization, Data, and Utils
+scipy>=1.11.4
+scikit-learn>=1.4.0
+matplotlib>=3.8.2
+tqdm>=4.66.1
+einops>=0.7.0
+ftfy>=6.1.3
+iopath>=0.1.10
+braceexpand>=0.1.7
+webdataset>=0.2.86
+tensorboardX>=2.6.2
+tokenizers>=0.15.0
+urllib3>=2.0.7
+SoundFile>=0.13.1
+cryptography>=44.0.3
+faiss-gpu-cu12
+python-dotenv==1.2.2
