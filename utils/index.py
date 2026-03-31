@@ -784,7 +784,7 @@ def run_indexing_process(video_files, sourceIds, video_fps_list, use_audio_list,
 
                 if (config.RECENT_DATE.year == todays_date.year and config.RECENT_DATE.month < todays_date.month) or config.RECENT_DATE.year < todays_date.year:
                     # print("resetting to 1000 hours")
-                    update_usage_hours(config.MONTHLY_RENEWAL_CREDITS)
+                    check_licence_validation()
                     config.OFFLINE_LICENSE_LIMIT_HOURS = config.MONTHLY_RENEWAL_CREDITS
                 
                 config.RECENT_DATE = todays_date
@@ -799,7 +799,7 @@ def run_indexing_process(video_files, sourceIds, video_fps_list, use_audio_list,
                     # Update license hours
                     current_hours = config.OFFLINE_LICENSE_LIMIT_HOURS - new_usage_hours
                     config.OFFLINE_LICENSE_LIMIT_HOURS = max(0.0, current_hours)
-                    update_usage_hours(config.OFFLINE_LICENSE_LIMIT_HOURS)
+                    update_usage_hours(new_usage_hours)
                     if config.OFFLINE_LICENSE_LIMIT_HOURS <= 0:
                         config.indexing_status['errors'].append("Usage limit exceeded please renew your licence")
                         config.indexing_status['in_progress'] = False
@@ -846,7 +846,7 @@ def run_indexing_process(video_files, sourceIds, video_fps_list, use_audio_list,
         # Update license hours
         current_hours = config.OFFLINE_LICENSE_LIMIT_HOURS - new_usage_hours
         config.OFFLINE_LICENSE_LIMIT_HOURS = max(0.0, current_hours)
-        update_usage_hours(config.OFFLINE_LICENSE_LIMIT_HOURS)
+        update_usage_hours(new_usage_hours)
         if config.OFFLINE_LICENSE_LIMIT_HOURS <= 0:
             config.indexing_status['errors'].append("Usage limit exceeded please renew your licence")
             config.indexing_status['in_progress'] = False

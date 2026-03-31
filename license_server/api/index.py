@@ -269,6 +269,7 @@ def _handle_heartbeat(handler: BaseHTTPRequestHandler):
     body = _read_body(handler)
     license_key = body.get("license_key", "").strip()
     hours_used = float(body.get("hours_used", 0))
+    hours_used = max(0.0, hours_used)
 
     if not license_key:
         _send_json(handler, 400, {"error": "license_key is required"})

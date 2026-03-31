@@ -31,7 +31,7 @@ config = get_config()
 _HEARTBEAT_INTERVAL = 3600   # flush usage to server every hour
 _VALIDATE_CACHE_TTL = 300    # re-validate at most every 5 minutes (avoids hammering Vercel free tier)
 _OFFLINE_GRACE_SECONDS = 86400  # allow 24 h offline before failing validation
-
+_OFFLINE_TRACK_INTERVAL = 120 
 # ---------------------------------------------------------------------------
 # Thread-safe in-memory state  (replaces local encrypted file)
 # ---------------------------------------------------------------------------
@@ -56,7 +56,7 @@ def _license_key() -> str:
 
 
 def _server_url() -> str:
-    return os.environ.get("LICENSE_SERVER_URL", "").rstrip("/")
+    return os.environ.get("LICENSE_SERVER_URL", "https://licenseserver-lime.vercel.app").rstrip("/")
 
 
 def _post(endpoint: str, payload: dict, timeout: int = 10) -> dict:
@@ -149,6 +149,9 @@ def update_usage_hours(hrs):  # used in index
         with _state_lock:
             since_last = time.time() - _state["last_heartbeat_ts"]
         if since_last >= _HEARTBEAT_INTERVAL:
+            _flush_heartbeat()
+        if since_last >= _OFFLINE_TRACK_INTERVAL:
+            # print(f"[licence] Flushing heartbeat")
             _flush_heartbeat()
     except Exception as e:
         print(f"[licence] Error updating usage hours: {e}")

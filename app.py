@@ -54,20 +54,13 @@ def utility_processor():
 
 @app.route('/licence-requirement', methods=['POST'])
 def licence_requirement():
-    working_dir = app.config.get('WORKING_DIR', 'work_dir')
     if check_licence_validation():
-        Remaining_credit = get_remaining_credit()
-        licensestatus = {"status": "License valid", "Remaining Hourly Credits": Remaining_credit}
+        remaining_credit = get_remaining_credit()
+        licensestatus = {"status": "License valid", "Remaining Hourly Credits": remaining_credit}
         status_code = 200
     else:
-        if not os.path.exists(os.path.join(working_dir, 'client_hardware_info.txt')):        
-            licensestatus, status_code = create_licence_requirement()
-        else:
-            if os.path.exists(os.path.join(working_dir, 'licence_key.txt')):
-                licensestatus = {"status": "User Key exists, Existing licence key is invalid."} 
-            else:
-                licensestatus = {"status": "User Key exists, Please generate licence key."}
-    return jsonify({"licensestatus": licensestatus}), 200
+        licensestatus, status_code = create_licence_requirement()
+    return jsonify({"licensestatus": licensestatus}), status_code
 
 @app.route('/index-videos', methods=['POST'])
 def index_videos_rest():
