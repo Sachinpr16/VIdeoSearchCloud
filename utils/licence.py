@@ -20,9 +20,10 @@ import threading
 import urllib.request
 import urllib.error
 from datetime import datetime
-
+import dotenv
 from config import get_config
 
+dotenv.load_dotenv()  # Load environment variables from .env file if present
 config = get_config()
 
 # ---------------------------------------------------------------------------

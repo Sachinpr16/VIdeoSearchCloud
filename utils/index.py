@@ -913,14 +913,22 @@ def index_videos(filepaths, sourceIds, video_fps_list, use_audio_list, is_video,
     if len(filepaths) != len(sourceIds):
         return {'error': 'Filepaths and SourceIds are of different length'}, 400
 
+    def resolve_path(fp: str) -> str:
+        """Return an absolute path.
+        - If fp is absolute, use it directly (regardless of existence check).
+        - Otherwise join with WORKING_DIR (relative path from API/CLI clients).
+        """
+        fp = fp.rstrip('/')
+        if os.path.isabs(fp):
+            return fp
+        # Relative path: prepend working dir
+        return os.path.join(config.WORKING_DIR, fp)
+
     video_paths = []
     
     if len(filepaths) > 1:
         for filepath in filepaths:
-            if filepath.endswith('/'):
-                filepath = filepath[:-1]
-            # wrk_dir = f"/{WORKING_DIR}/"
-            src_path = os.path.join(config.WORKING_DIR, filepath)
+            src_path = resolve_path(filepath)
             filename = os.path.basename(src_path)
             secure_name = secure_filename(filename)
             
@@ -938,15 +946,11 @@ def index_videos(filepaths, sourceIds, video_fps_list, use_audio_list, is_video,
                         'message': f'Started Indexing {len(video_paths)} videos as a group',
                 }, 200
     else:
-        if filepaths[0].endswith('/'):
-                filepaths[0] = filepaths[0][:-1]
-        filename = os.path.basename(filepaths[0])
-
-        file_path = filepaths[0]
-        file_path = os.path.join(config.WORKING_DIR, file_path)
+        file_path = resolve_path(filepaths[0])
+        filename = os.path.basename(file_path)
 
         if not os.path.isfile(file_path) and (is_video or not os.path.isdir(file_path)):
-            return {'error': f"""File not found or directory invalid {file_path}"""}, 404
+            return {'error': f'File not found or directory invalid: {file_path}'}, 404
         threading.Thread(target=run_indexing_process, 
                          args=([file_path], sourceIds, video_fps_list, use_audio_list, is_video, scene_frames, db_name)).start()
         time.sleep(3)

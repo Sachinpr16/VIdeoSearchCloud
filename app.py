@@ -13,7 +13,9 @@ from utils.remove import remove_video
 from utils.imageRegister import register_images_api, remove_registered_character, search_registered_api, get_registration_status
 
 import threading
+from flask_cors import CORS
 app = Flask(__name__)
+CORS(app)
 from setup_db import setup_database
 
 
@@ -67,12 +69,18 @@ def index_videos_rest():
     data = request.get_json()
     video_data = data.get("data", [])
     
-    # Clean up filepath by removing trailing slash
-    filepaths = [item["filepath"].rstrip('/') for item in video_data]
-    source_ids = [item.get("sourceId", os.path.basename(item["filepath"]).split(".")[0]) for item in video_data]
+    # Clean up filepath by removing trailing slash; accept both 'filepath' and 'filePath'
+    filepaths = [(item.get("filepath") or item.get("filePath", "")).rstrip('/') for item in video_data]
+    source_ids = [
+        item.get("sourceId") or os.path.basename(item.get("filepath") or item.get("filePath", "")).split(".")[0]
+        for item in video_data
+    ]
     video_fps_list = [item.get("fps", 30) for item in video_data]
     use_audio_list = [item.get("useAudio", False) for item in video_data]
-    scene_frames = {item["sourceId"]: item["sceneFrames"] for item in video_data if "sceneFrames" in item}
+    scene_frames = {
+        item.get("sourceId", ""): item["sceneFrames"]
+        for item in video_data if "sceneFrames" in item and item.get("sourceId")
+    }
     
     is_video = data.get("isVideo", True)
     db_name = data.get("dbName", "_default_db")

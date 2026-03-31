@@ -22,7 +22,7 @@ COPY db_utils.pyc .
 COPY model.pyc .
 COPY setup_db.pyc .
 
-ENV LICENSE_SERVER_URL=https://your-project.vercel.app
+ENV LICENSE_SERVER_URL="https://licenseserver-lime.vercel.app"
 ENV LICENSE_KEY=""
 
 # Create symlink for Faiss
